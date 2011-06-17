@@ -1,18 +1,51 @@
+/* Hydroponics System 
+
+-- Aeroponics controller
+-- Author: Evan Davey, evan.j.davey@gmail.com
+
+Cycles a pump for use in a hyrdoponics system
+Implemented as a state machine 
+X-valid serial command 
+      *menu -> send main menu
+      *data -> send data
+      **rst -> state 3 
+0-idle 
+  Outputs: pumpCtrl=Low,statusLed=Blink,reset=Low
+  off timer ends -> state 1
+  waterSensor=High -> state 2
+  
+1-pumping
+  Outputs: pumpCtrl=High,statusLed=Low,reset=Low
+  on timer ends -> state 1
+  waterSensor=High -> state 2
+  
+2-error,water low
+  Outputs: pumpCtrl=Low,statusLed=fast blink,reset=Low
+  requires reset to leave this state
+
+3-reset
+  Outputs: pumpCtrl=Low,statusLed=Low,reset=High
+  Waits delay_time before resetting
+
+
+*/
+
+
 // hardware
-const int pumpCtrl = 2; 
-const int statusLed = 13;
-const int reset = 12;
-const int waterSensor = 8;
+const int pumpCtrl = 2; //connect via a transistor with back voltage protection
+const int statusLed = 13; //connect using a current limiting resistor
+const int reset = 12; //connect to reset via a transistor tied to ground
+const int waterSensor = 8; //connect to a normally closed float switch
 
 // firmware defaults
 const float vers=1.0;
 const unsigned long default_pump_on_time = 30000; //on 30 seconds 
 const unsigned long default_pump_off_time = 300000; //off 5 minutes
-const long baud_rate=115200;
-volatile int debug_mode=0;
-int pumpCycles = 1;
-int reset_delay=4;
-int start_state=0; 
+const long baud_rate=115200; //baud rate for serial 
+volatile int debug_mode=0; //when high, outputs status data 
+int pumpCycles = 1; //counter of pump cycles
+int reset_delay=4; //time to wait after reset command issued
+int start_state=0; //starting state
 
 // 0 - idle
 // 1 - pumping
@@ -58,26 +91,38 @@ void setup() {
 
 }
 
+void keepTime() {
+   //keep the time
+  unsigned long currentMillis = millis();
+  pumpTimer += currentMillis-previousMillis;
+  previousMillis = currentMillis;
+  
+}
+
+void mainControlLoop() {
+  
+  keepTime();
+  
+  //check for errors
+  errorCheck();
+  
+  //handle state
+  handleState();
+
+  
+}
+
 
 void loop()
 {
 
-  //check for errors
-  errorCheck();
-
-  //keep the time
-  unsigned long currentMillis = millis();
-  pumpTimer += currentMillis-previousMillis;
-  previousMillis = currentMillis;
-
-  //handle state
-  handleState();
-
+  mainControlLoop();
+  
   //in the main menu
   if (in_menu) {
     menu_main();
   }
-
+ 
   //process received serial data
   //available command *menu
   handleSerialIn();
@@ -361,6 +406,8 @@ void menu_main() {
 
         Serial.flush();
         while (true) {
+          //ensure operation continues while waiting
+          mainControlLoop();
           if ( Serial.available() > 0) { // if there are bytes waiting on the serial port
             char * cmd_c="0";
             cmd_c[0]=Serial.read();
@@ -395,6 +442,8 @@ void menu_main() {
 
         Serial.flush();
         while (true) {
+          //ensure operation continues while waiting
+          mainControlLoop();
           int t;
           if ( Serial.available() > 0) { 
             cmd=Serial.read();
@@ -442,6 +491,8 @@ void menu_main() {
 
         Serial.flush();
         while (true) {
+          //ensure operation continues while waiting
+          mainControlLoop();
           long t;
           if ( Serial.available() > 0) { 
             cmd=Serial.read();
