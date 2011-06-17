@@ -72,7 +72,7 @@ boolean in_menu=false;
 
 void setup() {
 
-  // set  the transistor pin as output:
+
   pinMode(pumpCtrl, OUTPUT);
   pinMode(statusLed, OUTPUT);
   pinMode(reset, OUTPUT);
@@ -83,9 +83,9 @@ void setup() {
 
   Serial.begin(baud_rate);
 
-  delay(1000);
+  //delay(1000);
 
-  //turn on pump
+
   currentState=start_state;
 
 
