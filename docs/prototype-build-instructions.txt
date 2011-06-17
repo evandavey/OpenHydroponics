@@ -1,0 +1,47 @@
+Title: Aeroponics Prototype System
+
+#Introduction
+This document describes how to build an aeroponics system that can be used for indoor growing.
+
+#Why Hydroponics
+Hydroponics is a viable alternative to soil-based growing, particularly indoors, for a number of reasons:
+
+* soil is messy indoors
+* hydroponics can produce excellent growing results through precise control over plant nutrients
+* hydroponics is water-efficient 
+
+There are a number of different hydroponics methods. This build uses aeroponics where the plant's roots are sprayed regularly with a fine mist of nutrient rich solution.  This method can produce excellent results since the spraying process introduces significant oxygen and is targeted directly to the roots.  The downside of the method is that it is more complex and energy inefficient.
+
+#Parts List
+* a plastic container with lid, [ikea salma][],[ikea salma lid][]
+* approx. 50cm of 13mm irrigation hose, [growing-life][]
+* 4 aeroponics spray nozzles, [growing-life][]
+* 6 140mm heavy duty net pots, [growing-life][]
+* approx. 1m of 15mm pvc pipe, [jw-hinton][]
+* 2 sf pvc end caps, [jw-hinton][]
+* 1 sf pvc tee connector, [jw-hinton][]
+* 1 pvc hose connector, [jw-hinton][]
+* 6 15mm sf inserts, [jw-hinton][]
+* 1 13mm to 10mm reducer, [water-cooling-shop][]
+* approx. 10cm of 10mm hose, [water-cooling-shop][]
+* 1 12VDC pump [quality-gadgets-ebay][]
+
+#Build
+1. Drill or cut 6x140mm holes in the plastic tub lid.  For the Ikea Salma lid, there are two panels which should have 3 holes each.  They should be placed 10cm from the long edge and at 12cm,36cm and 60cm from the left short edge. 
+2. Test that the net pots fit the holes snugly and adjust to fit.
+3. Drill a 15mm hole in each side of the tub so that the pvc pipe can be inserted long ways through the tub.  Holes should be 35cm from the bottom and 25cm from the left edge.
+4. Cut a 90cm length of pvc pipe and then cut this in half.  Cut a separate 5cm length of pipe.  Insert each end of the pipes into the tee connector using the inserts.  Connect the 5cm pipe to the hose connector then insert into the base of the tee connector. Insert the connected pipe into the plastic tub.  With the lid on, mark the pvc for the best location of the sprayers by aligning them with the net pot holes, drill pilot holes then connect the sprayers.  Place the stop ends on each end of the pvc pipes once the sprayers have been inserted.
+5. Cut a small length of 10mm pipe and use this with the  10mm to 13mm reducer to connect to the pump.  Cut a small section of 13mm hose and use this to connect the 13mm reducer end to the hose connector.
+6. Fill with a small amount of water then connect the pump directly to the 12v power supply to test.
+7. Paint the tub and lid (a primer coat may be required).  This is so light is kept away from the roots / nutrients solution.
+8. Move the system to its final location (eg: at a window for sunlight). Fill the tub with a nutrient solution and add a grow medium (eg: perlite) to the net pots. 
+
+
+
+[quality-gadgets-ebay]: http://cgi.ebay.co.uk/ws/eBayISAPI.dll?ViewItem&item=190473725204
+[water-cooling-shop]: http://www.thewatercoolingshop.co.uk/
+[growing-life]: http://www.growing-life.com/
+[jw-hinton]: http://www.jwhinton.co.uk/
+[ikea salma]: http://www.ikea.com/gb/en/catalog/products/70102972
+[ikea salma lid]: http://www.ikea.com/gb/en/catalog/products/90110301
+
