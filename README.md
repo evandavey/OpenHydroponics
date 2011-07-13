@@ -5,6 +5,9 @@ An open hardware project for hydroponics.
 * firmware
 	- arduino pump controller sketch
 
+* hardware
+	- Eagle circuit schematic for pump controller
+
 * 3dmodels
 	- sketchup model of aeroponics prototype
 
