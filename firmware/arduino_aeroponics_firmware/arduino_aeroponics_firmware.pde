@@ -3,6 +3,13 @@
 -- Aeroponics controller
 -- Author: Evan Davey, evan.j.davey@gmail.com
 
+--V1.1
+--- adds string array for state labels
+--- converts data string to json from csv
+--- implements a newState variable to allow state change events
+--- sends data string on state changes
+--- adds a name variable to identify devices
+
 Cycles a pump for use in a hyrdoponics system
 Implemented as a state machine 
 X-valid serial command 
@@ -38,7 +45,8 @@ const int reset = 12; //connect to reset via a transistor tied to ground
 const int waterSensor = 8; //connect to a normally closed float switch
 
 // firmware defaults
-const float vers=1.0;
+const float vers=1.1;
+char* name="Aeroponics 1";
 const unsigned long default_pump_on_time = 30000; //on 30 seconds 
 const unsigned long default_pump_off_time = 300000; //off 5 minutes
 const long baud_rate=115200; //baud rate for serial 
@@ -46,12 +54,15 @@ volatile int debug_mode=0; //when high, outputs status data
 int pumpCycles = 1; //counter of pump cycles
 int reset_delay=4; //time to wait after reset command issued
 int start_state=0; //starting state
+char* stateStrings[]={"0 - Idle","1 - Pumping","2 - Error, Water too low","3 - Waiting to reset"};
+ 
 
 // 0 - idle
 // 1 - pumping
 // 2 - error, water level
 // 3 - waiting for reset
-volatile int currentState = 0;
+volatile int currentState = -1;
+volatile int newState = -1;
 
 
 
@@ -86,7 +97,7 @@ void setup() {
   //delay(1000);
 
 
-  currentState=start_state;
+  newState=start_state;
 
 
 }
@@ -96,6 +107,8 @@ void keepTime() {
   unsigned long currentMillis = millis();
   pumpTimer += currentMillis-previousMillis;
   previousMillis = currentMillis;
+  
+ 
   
 }
 
@@ -157,31 +170,58 @@ void handleSerialIn() {
       //Serial.println(inString);
 
       if ( strstr(inString, "menu") != NULL ) { // check to see if the respose is "reset"
-
-
-        menu_main(); // reset the chip after waiting for the specified # of milliseconds
-      } 
-      else if (strstr(inString, "data") != NULL ) {
+          menu_main(); 
+      } else if (strstr(inString, "data") != NULL ) {
 
         //send data
         data_toString();
 
-      } 
-      
-      else if (strstr(inString, "*rst") != NULL ) {
+      } else if (strstr(inString, "*rst") != NULL ) {
+
+        Serial.println("Resetting..");
+        //send data
+        newState=3;
+
+      } else if (strstr(inString, "sone") != NULL ) {
+
+        //Serial.println("Changing state to 1");
+        //send data
+        pumpTimer=0;
+        newState=1;
+        Serial.flush();
+
+      } else if (strstr(inString, "stwo") != NULL ) {
 
         //send data
-        currentState=3;
+        newState=2;
+        Serial.flush();
 
-      } 
+      } else if (strstr(inString,"idle") != NULL ) {
+
+        //send data
+        newState=0;
+        pumpTimer=0;
+        Serial.flush();
 
 
+     }
     }
   }
 }
 
 
+void state_change() {
+ 
+   data_toString(); 
+  
+}
+
 void handleState() {
+  
+  if (newState!=currentState) {
+    currentState=newState;
+    state_change();
+  }
 
   switch(currentState) {
     //IDLE
@@ -193,7 +233,7 @@ void handleState() {
     if (pumpTimer >= pump_off_time) {
       pumpTimer=0;
       pumpCycles++;
-      currentState=1;
+      newState=1;
     }
     break;
 
@@ -205,7 +245,7 @@ void handleState() {
     //pump on timer exceeded, switch to idle state
     if (pumpTimer >= pump_on_time) {
       pumpTimer=0;
-      currentState=0;
+      newState=0;
     }
     break;
 
@@ -229,7 +269,7 @@ void handleState() {
     
     Serial.println("** Resetting now **");
     digitalWrite(reset,HIGH);
-    currentState=0;
+    newState=0;
     break;
 
 
@@ -245,23 +285,56 @@ void handleState() {
 void data_toString() {
 
 
+  
+  
   //delay(1000);
-  Serial.println("State,PumpTimer,PumpOffTime,PumpOnTime,PumpCycles,WaterSensor,DebugMode");
+  Serial.print("{");
+  
+  Serial.print("\"State\"");
+  Serial.print(":");
   Serial.print(currentState);
   Serial.print(",");
+  
+   Serial.print("\"State Description\"");
+  Serial.print(":");
+  Serial.print(stateStrings[currentState]);
+  Serial.print(",");
+  
+  Serial.print("\"Pump Timer\"");
+  Serial.print(":");
   Serial.print(pumpTimer/1000);
   Serial.print(",");
+  
+  Serial.print("\"Pump Off Time\"");
+  Serial.print(":");
   Serial.print(pump_off_time);
   Serial.print(",");
+  
+  Serial.print("\"Pump On Time\"");
+  Serial.print(":");
   Serial.print(pump_on_time);
   Serial.print(",");
+  
+  Serial.print("\"Pump Cycles\"");
+  Serial.print(":");
   Serial.print(pumpCycles);
   Serial.print(",");
+  
+  Serial.print("\"Water Sensor\"");
+  Serial.print(":");
   Serial.print(waterSensorState);
   Serial.print(",");
-  Serial.print(debug_mode);
   
-  Serial.print("\n");
+  Serial.print("\"Name\"");
+  Serial.print(":");
+  Serial.print("\"");
+  Serial.print(name);
+  Serial.print("\"");
+  Serial.print(",");
+
+  Serial.print("}");
+  
+  Serial.println("");
 
 
 }
@@ -271,7 +344,7 @@ void errorCheck() {
 
   // water level too low, enter error state
   if (!checkWater()) {
-    currentState=2; 
+    newState=2; 
     return;
   } 
 
@@ -298,25 +371,9 @@ boolean checkWater() {
 
 void state_toString(int state) {
 
-  switch(state) {
-  case 0:
-    Serial.println("0 - Idle");
-    break;
-  case 1:
-    Serial.println("1 - Pumping");
-    break;
-  case 2:
-    Serial.println("2 - Error, Water too low");
-    break;
-  case 3:
-    Serial.println("3 - Waiting to reset");
-    break;
-
-  default:
-    Serial.println("Unknown State");
-
-  }
-
+  
+  Serial.println(stateStrings[state]);
+ 
 
 }
 
@@ -385,7 +442,7 @@ void menu_main() {
       case '2':
 
         in_menu=false;
-        currentState=3;
+        newState=3;
         break;
 
       case '3':
@@ -418,7 +475,7 @@ void menu_main() {
               Serial.print("Setting state to: ");
               Serial.println(cmd_i);
               pumpTimer=0;
-              currentState=cmd_i;
+              newState=cmd_i;
               in_menu=false;
               break;
             } 
