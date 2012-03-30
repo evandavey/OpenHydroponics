@@ -43,6 +43,7 @@ const int pumpCtrl = 2; //connect via a transistor with back voltage protection
 const int statusLed = 13; //connect using a current limiting resistor
 const int reset = 12; //connect to reset via a transistor tied to ground
 const int waterSensor = 8; //connect to a normally closed float switch
+const int manualButton = 3;
 
 // firmware defaults
 const float vers=1.1;
@@ -54,7 +55,7 @@ volatile int debug_mode=0; //when high, outputs status data
 int pumpCycles = 1; //counter of pump cycles
 int reset_delay=4; //time to wait after reset command issued
 int start_state=0; //starting state
-char* stateStrings[]={"0 - Idle","1 - Pumping","2 - Error, Water too low","3 - Waiting to reset"};
+char* stateStrings[]={"0 - Idle","1 - Pumping","2 - Error, Water too low","3 - Waiting to reset","4 - Manual Mode"};
  
 
 // 0 - idle
@@ -72,7 +73,7 @@ int ledState = LOW;             // ledState used to set the LED
 int pumpState = LOW;             // ledState used to set the LED
 long pumpTimer = 0; // will store last time LED was updated
 int waterSensorState = LOW;
-
+int manualButtonState = LOW;
 
 volatile char cmd='-1';
 long pump_on_time; //on 30 seconds 
@@ -88,6 +89,7 @@ void setup() {
   pinMode(statusLed, OUTPUT);
   pinMode(reset, OUTPUT);
   pinMode(waterSensor, INPUT);
+  pinMode(manualButton, INPUT);
 
   pump_off_time=default_pump_off_time;
   pump_on_time=default_pump_on_time;
@@ -96,6 +98,8 @@ void setup() {
 
   //delay(1000);
 
+
+  attachInterrupt(1, button1, RISING);
 
   newState=start_state;
 
@@ -248,7 +252,8 @@ void handleState() {
       newState=0;
     }
     break;
-
+    
+ 
     //ERROR
   case 2:
     digitalWrite(pumpCtrl,LOW);
@@ -272,7 +277,11 @@ void handleState() {
     newState=0;
     break;
 
-
+  //MANUAL ON
+ 
+   case 4:
+    digitalWrite(pumpCtrl,HIGH);
+    break;
 
   default:
     break;
@@ -358,14 +367,17 @@ void errorCheck() {
 //checks the water sensor and returns true if water is present
 boolean checkWater() {
 
-  waterSensorState=digitalRead(waterSensor);
+/*  waterSensorState=digitalRead(waterSensor);
 
   if (waterSensorState == HIGH) {
     return false;
   } 
   else {
     return true;
-  } 
+  }
+ 
+*/
+ return true;
 
 }
 
@@ -619,6 +631,27 @@ void flashLed(int ledPin,int numBlinks,int blinkRate) {
 
 }  
 
+void button1() {
+ 
+  static unsigned long last_interrupt_time = 0;
+  unsigned long interrupt_time = millis();
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
+  if (interrupt_time - last_interrupt_time > 200)
+  {
+   manualButtonState = !manualButtonState;
+ 
+ if (manualButtonState) {
+   
+    newState=4; 
+ }
+ else {
+    newState=0; 
+ }
+  }
+  last_interrupt_time = interrupt_time;
+ 
+  
+}
 
 
 
